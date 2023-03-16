@@ -12,32 +12,35 @@ app.use(express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// app.get("/api/notes", (req, res) => {
-//   res.sendFile(path.join(__dirname, "./db/db.json"));
-// });
+// api/notes routes
+app.get("/api/notes", (req, res) => {
+  console.log(`${req.method} route for: /api/notes`);
+  readFromFile("./db/db.json").then((data) => res.json(JSON.parse(data)));
+});
 
-// app.post("/api/notes", (req, res) => {
-//   fs.readFile("./db/db.json", (err, data) => {
-//     if (err) throw err;
-//     const notes = JSON.parse(data);
-//     const newNote = {
-//       id: uuid.v4(),
-//       title: req.body.title,
-//       text: req.body.text,
-//     };
-//     notes.push(newNote);
-//     fs.writeFile("./db/db.json", JSON.stringify(notes), (err) => {
-//       if (err) throw err;
-//       res.send("Note added sucessfully");
-//     });
-//   });
-// });
+app.post("/api/notes", async (req, res) => {
+  console.info(`${req.method} request received to add a note`);
 
-// app.get("/api/notes/:id", (req, res) => {
-//   res.send(req.params.id);
-// });
+  try {
+    const { title, text } = req.body;
+    if (!title || !text) {
+      throw new Error("Both title and text are required");
+    }
+    const newNote = {
+      title,
+      text,
+      id: uuid.v4(),
+    };
+    savedNotes.push(newNote);
+    await fs.promises.writeFile("./db/db.json", JSON.stringify(savedNotes));
+    res.status(201).json(newNote);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: err.message });
+  }
+});
 
-//HTML Routes
+// HTML Routes
 app.get("/notes", (req, res) => {
   console.log("Loading notes.html file");
   res.sendFile(path.join(__dirname, "/public/notes.html"));
