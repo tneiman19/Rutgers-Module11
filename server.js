@@ -40,6 +40,21 @@ app.post("/api/notes", async (req, res) => {
   }
 });
 
+app.delete("/api/notes/:id", async (req, res) => {
+  console.log("User hit the delete route");
+  try {
+    const notes = await fs.promises.readFile("./db/db.json", "utf-8");
+    const filteredNotes = JSON.parse(notes).filter(
+      (note) => note.id !== req.params.id
+    );
+    await fs.promises.writeFile("./db/db.json", JSON.stringify(filteredNotes));
+    res.send("Note deleted successfully.");
+  } catch (error) {
+    console.error("Error deleting note: ", error);
+    res.status(500).send("Internal Server Error.");
+  }
+});
+
 // HTML Routes
 app.get("/notes", (req, res) => {
   console.log("Loading notes.html file");
